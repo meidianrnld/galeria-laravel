@@ -8,6 +8,7 @@ use App\Models\AplikasiDokumen;
 use App\Models\AplikasiFitur;
 use App\Models\AplikasiTim;
 use App\Models\AplikasiVersi;
+use App\Models\FiturKategori;
 use Illuminate\Http\Request;
 
 class AplikasiDetailController extends Controller
@@ -16,9 +17,12 @@ class AplikasiDetailController extends Controller
     {
         $this->authorizeSatkerAccess($request, $aplikasi);
 
-        $aplikasi->load(['fiturs', 'tims', 'dokumens', 'versis']);
+        $aplikasi->load(['fiturs.kategori', 'tims', 'dokumens', 'versis']);
 
-        return view('admin.aplikasi.detail', compact('aplikasi'));
+        return view('admin.aplikasi.detail', [
+            'aplikasi' => $aplikasi,
+            'fiturKategoris' => FiturKategori::orderBy('nama')->get(),
+        ]);
     }
 
     public function storeFitur(Request $request, Aplikasi $aplikasi)
@@ -27,7 +31,7 @@ class AplikasiDetailController extends Controller
 
         $aplikasi->fiturs()->create($request->validate([
             'nama' => ['required', 'string', 'max:255'],
-            'kategori' => ['nullable', 'string', 'max:255'],
+            'fitur_kategori_id' => ['nullable', 'exists:fitur_kategoris,id'],
             'deskripsi' => ['nullable', 'string'],
         ]));
 
@@ -72,11 +76,19 @@ class AplikasiDetailController extends Controller
     {
         $this->authorizeSatkerAccess($request, $aplikasi);
 
-        $aplikasi->dokumens()->create($request->validate([
+        $data = $request->validate([
             'judul' => ['required', 'string', 'max:255'],
             'tipe' => ['required', 'string', 'max:255'],
-            'url' => ['required', 'url', 'max:255'],
-        ]));
+            'dokumen' => ['required', 'file', 'max:20480'],
+            'version' => ['nullable', 'string', 'max:50'],
+            'visibility' => ['required', 'in:public,admin'],
+        ]);
+        $file = $request->file('dokumen');
+        $data['file_name'] = $file->store('dokumen-aplikasi');
+        $data['file_size'] = $file->getSize();
+        $data['mime_type'] = $file->getMimeType();
+        unset($data['dokumen']);
+        $aplikasi->dokumens()->create($data);
 
         return back()->with('status', 'Dokumen berhasil ditambahkan.');
     }

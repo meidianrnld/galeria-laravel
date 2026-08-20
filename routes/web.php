@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [KatalogController::class, 'dashboard'])->name('dashboard');
 Route::get('/katalog', [KatalogController::class, 'index'])->name('katalog.index');
 Route::get('/katalog/{aplikasi:slug}', [KatalogController::class, 'show'])->name('katalog.show');
+Route::get('/katalog/{aplikasi:slug}/dokumen/{dokumen}', [KatalogController::class, 'downloadDocument'])->name('katalog.dokumen.download');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');

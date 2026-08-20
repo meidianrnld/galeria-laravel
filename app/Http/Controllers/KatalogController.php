@@ -7,6 +7,7 @@ use App\Models\AplikasiKategori;
 use App\Models\Satker;
 use App\Models\Teknologi;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class KatalogController extends Controller
 {
@@ -56,13 +57,22 @@ class KatalogController extends Controller
             'teknologis',
             'tims',
             'fiturs',
-            'dokumens',
+            'dokumens' => fn ($query) => $query->where('visibility', 'public'),
             'medias',
             'replikasis.satker',
             'versis',
         ]);
 
         return view('katalog.show', compact('aplikasi'));
+    }
+
+    public function downloadDocument(Aplikasi $aplikasi, \App\Models\AplikasiDokumen $dokumen)
+    {
+        abort_unless($dokumen->aplikasi_id === $aplikasi->id && $dokumen->visibility === 'public', 404);
+
+        return Storage::download($dokumen->file_name, basename($dokumen->file_name), [
+            'Content-Type' => $dokumen->mime_type ?: 'application/octet-stream',
+        ]);
     }
 
     public function dashboard()

@@ -9,6 +9,8 @@ use App\Models\AplikasiKategori;
 use App\Models\AplikasiReplikasi;
 use App\Models\AplikasiTim;
 use App\Models\AplikasiVersi;
+use App\Models\FiturKategori;
+use App\Models\Provinsi;
 use App\Models\Satker;
 use App\Models\Teknologi;
 use App\Models\User;
@@ -20,13 +22,22 @@ class GaleriaSeeder extends Seeder
 {
     public function run(): void
     {
+        $provinsi = Provinsi::firstOrCreate(['kode' => '17'], ['nama' => 'Bengkulu']);
         $satkers = collect([
             ['kode' => '1700', 'nama' => 'BPS Provinsi Bengkulu', 'jenis' => 'provinsi'],
             ['kode' => '1701', 'nama' => 'BPS Kabupaten Bengkulu Selatan', 'jenis' => 'kabupaten_kota'],
             ['kode' => '1702', 'nama' => 'BPS Kabupaten Rejang Lebong', 'jenis' => 'kabupaten_kota'],
             ['kode' => '1703', 'nama' => 'BPS Kabupaten Bengkulu Utara', 'jenis' => 'kabupaten_kota'],
             ['kode' => '1771', 'nama' => 'BPS Kota Bengkulu', 'jenis' => 'kabupaten_kota'],
-        ])->mapWithKeys(fn ($data) => [$data['kode'] => Satker::firstOrCreate(['kode' => $data['kode']], $data)]);
+        ])->mapWithKeys(function ($data) use ($provinsi) {
+            $data['provinsi_id'] = $provinsi->id;
+            return [$data['kode'] => Satker::firstOrCreate(['kode' => $data['kode']], $data)];
+        });
+
+        $fiturKategoris = collect(['Katalog', 'Administrasi'])
+            ->mapWithKeys(fn ($nama) => [$nama => FiturKategori::firstOrCreate([
+                'slug' => Str::slug($nama),
+            ], ['nama' => $nama])]);
 
         $kategoris = collect([
             ['nama' => 'Tata Kelola Organisasi', 'deskripsi' => 'Aplikasi pendukung administrasi, pengendalian, dan manajemen internal.'],
@@ -108,12 +119,12 @@ class GaleriaSeeder extends Seeder
         ]);
 
         AplikasiFitur::firstOrCreate(['aplikasi_id' => $galeria->id, 'nama' => 'Katalog Aplikasi'], [
+            'fitur_kategori_id' => $fiturKategoris['Katalog']->id,
             'deskripsi' => 'Menampilkan daftar aplikasi yang dapat dicari dan difilter berdasarkan kategori, satker, status, dan teknologi.',
-            'kategori' => 'Katalog',
         ]);
         AplikasiFitur::firstOrCreate(['aplikasi_id' => $galeria->id, 'nama' => 'Verifikasi Data Aplikasi'], [
+            'fitur_kategori_id' => $fiturKategoris['Administrasi']->id,
             'deskripsi' => 'Admin Provinsi dapat memeriksa dan memverifikasi data aplikasi yang diajukan Admin Satker.',
-            'kategori' => 'Administrasi',
         ]);
         AplikasiTim::firstOrCreate(['aplikasi_id' => $galeria->id, 'nama' => 'Tim SIM'], [
             'peran' => 'Pengembang dan pengelola sistem',
@@ -121,7 +132,11 @@ class GaleriaSeeder extends Seeder
         ]);
         AplikasiDokumen::firstOrCreate(['aplikasi_id' => $galeria->id, 'judul' => 'SRS GALERIA'], [
             'tipe' => 'srs',
-            'url' => 'https://example.test/dokumen/srs-galeria.pdf',
+            'file_name' => 'dokumen-aplikasi/srs-galeria.pdf',
+            'file_size' => 0,
+            'mime_type' => 'application/pdf',
+            'version' => '0.1.0',
+            'visibility' => 'public',
         ]);
         AplikasiVersi::firstOrCreate(['aplikasi_id' => $galeria->id, 'versi' => '0.1.0'], [
             'tanggal_rilis' => '2026-08-20',

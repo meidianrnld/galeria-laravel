@@ -10,7 +10,12 @@ class AplikasiDokumen extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['aplikasi_id', 'judul', 'tipe', 'url'];
+    protected $fillable = ['aplikasi_id', 'judul', 'tipe', 'file_name', 'file_size', 'mime_type', 'version', 'visibility'];
+
+    protected function casts(): array
+    {
+        return ['file_size' => 'integer'];
+    }
 
     public function aplikasi(): BelongsTo
     {

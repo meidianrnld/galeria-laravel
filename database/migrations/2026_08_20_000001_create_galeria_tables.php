@@ -8,8 +8,16 @@ return new class extends Migration
 {
     public function up(): void
     {
+        Schema::create('provinsis', function (Blueprint $table) {
+            $table->id();
+            $table->string('kode', 10)->unique();
+            $table->string('nama')->unique();
+            $table->timestamps();
+        });
+
         Schema::create('satkers', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('provinsi_id')->constrained('provinsis')->cascadeOnUpdate()->restrictOnDelete();
             $table->string('kode')->unique();
             $table->string('nama');
             $table->string('jenis')->default('kabupaten_kota');
@@ -27,7 +35,10 @@ return new class extends Migration
         Schema::create('teknologis', function (Blueprint $table) {
             $table->id();
             $table->string('nama');
-            $table->string('tipe');
+            $table->enum('tipe', [
+                'Bahasa Pemrograman', 'Framework', 'Frontend', 'Database', 'Library',
+                'API', 'Web Server', 'DevOps', 'UI Component', 'Lainnya',
+            ]);
             $table->string('lisensi')->nullable();
             $table->timestamps();
             $table->unique(['nama', 'tipe']);
@@ -71,12 +82,19 @@ return new class extends Migration
             $table->timestamps();
         });
 
+        Schema::create('fitur_kategoris', function (Blueprint $table) {
+            $table->id();
+            $table->string('nama')->unique();
+            $table->string('slug')->unique();
+            $table->timestamps();
+        });
+
         Schema::create('aplikasi_fiturs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('aplikasi_id')->constrained('aplikasis')->cascadeOnDelete();
+            $table->foreignId('fitur_kategori_id')->nullable()->constrained('fitur_kategoris')->nullOnDelete();
             $table->string('nama');
             $table->text('deskripsi')->nullable();
-            $table->string('kategori')->nullable();
             $table->timestamps();
         });
 
@@ -85,7 +103,11 @@ return new class extends Migration
             $table->foreignId('aplikasi_id')->constrained('aplikasis')->cascadeOnDelete();
             $table->string('judul');
             $table->string('tipe')->default('user_guide');
-            $table->string('url');
+            $table->string('file_name');
+            $table->unsignedBigInteger('file_size')->nullable();
+            $table->string('mime_type', 100)->nullable();
+            $table->string('version')->nullable();
+            $table->enum('visibility', ['public', 'admin'])->default('public');
             $table->timestamps();
         });
 
@@ -142,5 +164,7 @@ return new class extends Migration
         Schema::dropIfExists('teknologis');
         Schema::dropIfExists('aplikasi_kategoris');
         Schema::dropIfExists('satkers');
+        Schema::dropIfExists('fitur_kategoris');
+        Schema::dropIfExists('provinsis');
     }
 };

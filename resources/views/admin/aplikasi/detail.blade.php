@@ -19,7 +19,7 @@
                 @csrf
                 <div class="form-grid">
                     <div><label>Nama fitur</label><input name="nama" required></div>
-                    <div><label>Kategori</label><input name="kategori"></div>
+                    <div><label>Kategori</label><select name="fitur_kategori_id"><option value="">Tanpa kategori</option>@foreach ($fiturKategoris as $kategori)<option value="{{ $kategori->id }}">{{ $kategori->nama }}</option>@endforeach</select></div>
                     <div class="full"><label>Deskripsi</label><textarea name="deskripsi"></textarea></div>
                 </div>
                 <button class="button" type="submit" style="margin-top:12px">Tambah Fitur</button>
@@ -28,7 +28,7 @@
                 @forelse ($aplikasi->fiturs as $fitur)
                     <li>
                         <strong>{{ $fitur->nama }}</strong>
-                        <div class="muted">{{ $fitur->kategori }} {{ $fitur->deskripsi ? '· '.$fitur->deskripsi : '' }}</div>
+                        <div class="muted">{{ $fitur->kategori?->nama ?? 'Tanpa kategori' }} {{ $fitur->deskripsi ? '· '.$fitur->deskripsi : '' }}</div>
                         <form method="post" action="{{ route('admin.aplikasi.detail.fitur.destroy', [$aplikasi, $fitur]) }}" style="margin-top:8px">
                             @csrf
                             @method('delete')
@@ -74,12 +74,14 @@
     <section class="grid two" style="margin-top:16px">
         <div class="panel">
             <h2>Dokumentasi</h2>
-            <form method="post" action="{{ route('admin.aplikasi.detail.dokumen.store', $aplikasi) }}">
+            <form method="post" enctype="multipart/form-data" action="{{ route('admin.aplikasi.detail.dokumen.store', $aplikasi) }}">
                 @csrf
                 <div class="form-grid">
                     <div><label>Judul</label><input name="judul" required></div>
                     <div><label>Tipe</label><input name="tipe" value="user_guide" required></div>
-                    <div class="full"><label>URL</label><input type="url" name="url" required></div>
+                    <div><label>Versi</label><input name="version"></div>
+                    <div><label>Visibilitas</label><select name="visibility"><option value="public">Publik</option><option value="admin">Admin</option></select></div>
+                    <div class="full"><label>File dokumen</label><input type="file" name="dokumen" required></div>
                 </div>
                 <button class="button" type="submit" style="margin-top:12px">Tambah Dokumen</button>
             </form>
@@ -87,7 +89,7 @@
                 @forelse ($aplikasi->dokumens as $dokumen)
                     <li>
                         <strong>{{ $dokumen->judul }}</strong>
-                        <div><a href="{{ $dokumen->url }}" target="_blank">{{ $dokumen->tipe }}</a></div>
+                        <div class="muted">{{ $dokumen->tipe }} · {{ $dokumen->version ?: 'Tanpa versi' }} · {{ $dokumen->visibility }}</div>
                         <form method="post" action="{{ route('admin.aplikasi.detail.dokumen.destroy', [$aplikasi, $dokumen]) }}" style="margin-top:8px">
                             @csrf
                             @method('delete')

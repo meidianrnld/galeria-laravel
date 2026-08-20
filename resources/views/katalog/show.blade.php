@@ -76,7 +76,7 @@
             <h2>Dokumentasi</h2>
             <ul class="list">
                 @forelse ($aplikasi->dokumens as $dokumen)
-                    <li><strong>{{ $dokumen->judul }}</strong><div><a href="{{ $dokumen->url }}" target="_blank">{{ ucfirst($dokumen->tipe) }}</a></div></li>
+                    <li><strong>{{ $dokumen->judul }}</strong><div><a href="{{ route('katalog.dokumen.download', [$aplikasi, $dokumen]) }}">{{ ucfirst($dokumen->tipe) }}</a> <span class="muted">· {{ $dokumen->version ?: 'Tanpa versi' }} · {{ $dokumen->mime_type }}</span></div></li>
                 @empty
                     <li class="muted">Belum ada dokumen.</li>
                 @endforelse
